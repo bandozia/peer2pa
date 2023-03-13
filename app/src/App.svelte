@@ -1,21 +1,41 @@
 <script lang="ts">
-	export let name: string;
+	import { HubConnectionBuilder } from "@microsoft/signalr";
+	
+	let conn = new HubConnectionBuilder()
+		.withUrl("http://localhost:5169/p2pa")
+		.build();
+
+	conn.start()
+		.then(() => {
+			console.info("conectado");
+		})
+		.catch((e) => {
+			console.error("deu ruim", e);
+		});
+
+	conn.on("Pong", (msg: string) => {
+		console.info("received back: ", msg);
+	});
+
+	const testWs = () => {
+		conn.invoke("Ping", "ping").catch((err) => {
+			console.error("deu ruim", err);
+		});
+	};
 
 	const testFetch = () => {
-		fetch("https://www.google.com").then(res => {
-			res.text().then( data => {
-				console.log(data)
-				alert('working')
-			})
-		})
-	}
-
+		fetch("http://localhost:5169/test").then((res) => {
+			res.text().then((data) => {
+				console.log(data);
+				alert("working");
+			});
+		});
+	};
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
 	<button on:click={testFetch}>test fetch</button>
+	<button on:click={testWs}>test ws</button>
 </main>
 
 <style>
@@ -25,14 +45,7 @@
 		max-width: 240px;
 		margin: 0 auto;
 	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
+	
 	@media (min-width: 640px) {
 		main {
 			max-width: none;
